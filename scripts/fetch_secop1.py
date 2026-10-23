@@ -9,7 +9,7 @@ Dos diferencias que importan:
     departamento + municipio), así que estos contratos nunca se pueden ubicar
     en el mapa de calor.
 """
-import csv, json, os, sys, urllib.parse, urllib.request
+import csv, json, os, sys, time, urllib.error, urllib.parse, urllib.request
 
 DATASET = "f789-7hwg"
 DEPARTAMENTO = "San Andrés, Providencia y Santa Catalina"
@@ -42,8 +42,20 @@ def main():
     url = f"https://www.datos.gov.co/resource/{DATASET}.json?" + urllib.parse.urlencode(params)
 
     print("consultando SECOP I (puede tardar varios minutos)…", flush=True)
-    with urllib.request.urlopen(url, timeout=600) as r:
-        rows = json.load(r)
+    rows = None
+    for i in range(1, 4):
+        try:
+            with urllib.request.urlopen(url, timeout=600) as r:
+                rows = json.load(r)
+            break
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504) or i == 3:
+                raise
+        except (urllib.error.URLError, TimeoutError):
+            if i == 3:
+                raise
+        print(f"  intento {i} falló; reintento en {60 * i} s", file=sys.stderr, flush=True)
+        time.sleep(60 * i)
     if not rows:
         sys.exit("error: SECOP I no devolvió filas para la entidad")
 

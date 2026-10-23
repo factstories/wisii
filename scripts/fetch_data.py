@@ -3,7 +3,7 @@
 Uso:  python3 scripts/fetch_data.py
 Env:  SODA_APP_TOKEN (opcional pero recomendado; sin él aplica rate limit estricto)
 """
-import csv, io, os, sys, urllib.parse, urllib.request
+import csv, io, os, sys, time, urllib.error, urllib.parse, urllib.request
 
 DATASET = "jbjy-vk9h"                 # SECOP II - Contratos Electrónicos
 # Todo el departamento, no solo la Gobernación: 15 entidades públicas con
@@ -33,8 +33,26 @@ def page(offset, token):
     if token:
         params["$$app_token"] = token
     url = f"https://www.datos.gov.co/resource/{DATASET}.csv?" + urllib.parse.urlencode(params)
-    with urllib.request.urlopen(url, timeout=120) as r:
-        return r.read().decode("utf-8")
+    return descargar(url, timeout=120)
+
+
+def descargar(url, timeout, intentos=4):
+    """Reintenta ante límite de peticiones (429) o errores del servidor. Los
+    runners de GitHub comparten IP, así que el límite se alcanza seguido."""
+    for i in range(1, intentos + 1):
+        try:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504) or i == intentos:
+                raise
+            espera = 30 * i
+        except (urllib.error.URLError, TimeoutError):
+            if i == intentos:
+                raise
+            espera = 30 * i
+        print(f"  intento {i} falló; reintento en {espera} s", file=sys.stderr, flush=True)
+        time.sleep(espera)
 
 def main():
     token = os.environ.get("SODA_APP_TOKEN", "")

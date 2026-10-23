@@ -322,6 +322,16 @@ corre los lunes, regenera `public/data/` y commitea si algo cambió, lo que disp
 redespliegue. Requiere un secret `SODA_APP_TOKEN` en el repo
 (Settings → Secrets and variables → Actions).
 
+Antes de commitear, [`scripts/verificar_datos.py`](scripts/verificar_datos.py) compara el
+resultado con la versión publicada y **frena la publicación** si una fuente quedó en cero,
+si una fuente cayó más de 15% o si el total cayó más de 10%. En ese caso el sitio conserva
+los datos de la semana anterior y el job queda en rojo para revisarlo. Los umbrales dejan
+pasar los cambios reales de la fuente: el 12 de octubre de 2026 SECOP II perdió 3.019
+contratos de una semana a otra (−7,5%) porque datos.gov.co retiró registros de la
+Gobernación. Si la descarga de SECOP I falla, el job se detiene en vez de publicar el sitio
+sin esos contratos, y las dos descargas reintentan ante límites de peticiones o errores del
+servidor.
+
 ## Estructura
 
 ```

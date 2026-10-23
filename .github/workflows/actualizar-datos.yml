@@ -23,18 +23,23 @@ jobs:
           SODA_APP_TOKEN: ${{ secrets.SODA_APP_TOKEN }}
         run: python3 scripts/fetch_data.py
 
-      # SECOP I es un sistema cerrado (2015-2022): no cambia, pero se re-descarga
-      # por si hay correcciones retroactivas. La consulta es lenta.
+      # SECOP I casi no cambia, pero se re-descarga por si hay correcciones
+      # retroactivas. Si falla, el job se detiene: el CSV no está en el repo, y
+      # seguir publicaría el sitio sin sus ~30.000 contratos.
       - name: Descargar contratos de SECOP I
         env:
           SODA_APP_TOKEN: ${{ secrets.SODA_APP_TOKEN }}
         run: python3 scripts/fetch_secop1.py
-        continue-on-error: true
 
       # El contorno de la isla no cambia: se regenera solo a mano (scripts/fetch_geo.py)
       # para no golpear Overpass cada semana.
       - name: Reconstruir los JSON de la web
         run: python3 scripts/build_data.py
+
+      # Frena la publicación si una fuente quedó en cero o los datos cayeron
+      # más de lo que explica un cambio real de la fuente.
+      - name: Verificar que los datos no se desplomaron
+        run: python3 scripts/verificar_datos.py
 
       - name: Commitear si hubo cambios
         run: |
