@@ -20,6 +20,28 @@ export interface Hallazgo {
 
 const TODOS: Hallazgo[] = [
   {
+    slug: "2026-10-ley-de-garantias",
+    titulo: "En años de elección presidencial, la Gobernación firma la contratación del año antes de la Ley de Garantías",
+    fecha: "2026-10-24",
+    resumen:
+      "En 2018, 2022 y 2026 la Gobernación firmó en pocos días de enero entre el 38% y el 72% de su " +
+      "contratación directa del año, justo antes de que la ley la prohibiera. En los demás años, enero " +
+      "está casi vacío. En 2022 siguió firmando con la restricción vigente.",
+    etiquetas: ["Ley de Garantías", "Gobernación", "Contratación directa", "Elecciones"],
+    texto:
+      "La Ley 996 de 2005, Ley de Garantías, prohíbe la contratación directa en todas las entidades " +
+      "públicas durante los cuatro meses anteriores a la elección presidencial y hasta la segunda vuelta. " +
+      "En la Gobernación del Archipiélago casi todos los contratos son directos, sobre todo prestación de " +
+      "servicios. En 2018 se firmó antes del corte el 55% de los contratos directos del año; en 2022, el " +
+      "38%; en 2026, el 72%. En los años sin elección presidencial, en las mismas semanas de enero, no más " +
+      "del 6%. El 28 de enero de 2022, un día antes de la restricción, se firmaron 1.013 contratos, el día " +
+      "con más firmas del registro. Con la restricción vigente se firmaron 1.276 contratos directos en " +
+      "2022, la mayoría el 2 de febrero; solo 31 mencionan emergencias, desastres o salud. Los contratos " +
+      "terminan alrededor de las elecciones: en junio y julio en 2018 y 2022, en mayo y junio en 2026, y " +
+      "en noviembre en 2023, tras las elecciones territoriales. Adelantar la contratación es legal; los " +
+      "datos no permiten afirmar relación con campañas.",
+  },
+  {
     slug: "2026-10-contratos-retirados-del-secop",
     titulo: "3.158 contratos desaparecieron de los datos abiertos del SECOP en una semana",
     fecha: "2026-10-23",

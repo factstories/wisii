@@ -11,3 +11,6 @@ next-env.d.ts
 data/contratos_raw.csv
 data/secop1_raw.csv
 data/GOBERNACION_SAN_ANDRES_contratos_desde_2025-01-01.csv
+
+# resultados de scripts/estudios: se regeneran
+data/estudios/

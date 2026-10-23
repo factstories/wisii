@@ -244,7 +244,8 @@ export default async function Nota2026Oct() {
       </Seccion>
 
       <Seccion antetitulo="La evidencia" titulo={`Los ${numero(cs.length)} contratos`}>
-        <div className="rv"><TablaRetirados archivo={`/data/${EVIDENCIA}`} /></div>
+        <div className="rv"><TablaRetirados archivo={`/data/${EVIDENCIA}`}
+          etiqueta={`Buscar entre los ${numero(cs.length)} contratos retirados`} /></div>
       </Seccion>
 
       <Seccion titulo="Datos y método">
