@@ -14,13 +14,16 @@ import {
   escribirUrl, leerContrato, leerFiltros, leerProveedores, leerVista, MAX_PROVEEDORES,
   type Filtros, type Vista,
 } from "@/lib/urlEstado";
-import { claveProveedor } from "@/lib/linea";
+import { claveProveedor, indexarProveedores, SERIES } from "@/lib/linea";
 import { Cargando } from "@/components/ui";
 import TemaToggle from "@/components/TemaToggle";
 import BarraFiltros from "@/components/BarraFiltros";
 import Listado from "@/components/Listado";
 import NotaGobierno from "@/components/NotaGobierno";
 import DetalleContrato from "@/components/DetalleContrato";
+import IconoIslas from "@/components/IconoIslas";
+import { MarcaWisii } from "@/components/marca/Logos";
+import ListaBlog from "@/components/hallazgos/ListaBlog";
 
 // maplibre toca window en el import: fuera del render del servidor
 const MapaCalor = dynamic(() => import("@/components/MapaCalor"), {
@@ -39,17 +42,20 @@ const AsignadorBarrios = dynamic(() => import("@/components/AsignadorBarrios"), 
 /** Las herramientas de barrios escriben en disco: solo existen en local. */
 const EDITOR_DISPONIBLE = process.env.NEXT_PUBLIC_EDITOR_BARRIOS !== "0";
 const HERRAMIENTAS: Vista[] = ["editor", "asignador"];
-/** vistas que no usan la barra de filtros del listado */
-const SIN_FILTROS: Vista[] = [...HERRAMIENTAS];
+/** vistas que no usan la barra de filtros */
+const SIN_FILTROS: Vista[] = [...HERRAMIENTAS, "blog"];
 
+/** Pestañas principales. El mapa de calor es secundario: va como ícono aparte. */
 const VISTAS: [Vista, string][] = [
   ["contratos", "Contratos"],
-  ["mapa", "Mapa de calor"],
   ["timeline", "Timeline"],
+  ["blog", "Blog posts"],
   ...(EDITOR_DISPONIBLE
     ? ([["editor", "Editor de barrios"], ["asignador", "Asignador de barrios"]] as [Vista, string][])
     : []),
 ];
+
+const SIN_CONTRATOS: Contrato[] = [];
 
 interface Datos {
   contratos: Contrato[]; meta: Meta;
@@ -93,18 +99,32 @@ function Explorador() {
 
   const contratos = useMemo(() => d?.contratos ?? [], [d]);
   // El mapa no tiene buscador de texto, pero comparte todos los demás filtros.
-  // En el timeline, los filtros y sus contadores se calculan sobre los
-  // contratos de los proveedores elegidos: "Cerrado (12)" quiere decir 12 de
-  // ellos, no del departamento entero. Sin proveedores, se usa todo.
+  // Filtrado de todo el departamento: lo usan el listado, el mapa y las
+  // sugerencias del buscador. En el timeline, los contadores de la barra se
+  // calculan aparte sobre los contratos de los proveedores elegidos, para que
+  // "Cerrado (12)" quiera decir 12 de ellos. Esa segunda pasada recibe una lista
+  // vacía fuera del timeline, así que no cuesta nada.
+  // Los proveedores elegidos son un carrito global: acotan el listado y son
+  // las líneas del timeline. El mapa los ignora.
   const enTimeline = vista === "timeline";
+  const conCarrito = (vista === "contratos" || vista === "timeline") && proveedores.length > 0;
   const elegidos = useMemo(() => new Set(proveedores), [proveedores]);
-  const universo = useMemo(
-    () => (enTimeline && elegidos.size
+  const global = useFiltrado(contratos, filtros, vista !== "contratos");
+  const deElegidos = useFiltrado(
+    useMemo(() => (conCarrito
       ? contratos.filter((c) => elegidos.has(claveProveedor(c)))
-      : contratos),
-    [enTimeline, elegidos, contratos]);
-  // solo el listado tiene buscador de texto; en las demás vistas no debe acotar
-  const filtrado = useFiltrado(universo, filtros, vista !== "contratos");
+      : SIN_CONTRATOS), [conCarrito, elegidos, contratos]),
+    filtros, vista !== "contratos");
+  const filtrado = conCarrito ? deElegidos : global;
+
+  /** Sumar al carrito: si ya hay tres, el nuevo reemplaza la lista. */
+  const elegirProveedor = (k: string) =>
+    setProveedores((ps) => ps.includes(k) ? ps : ps.length < MAX_PROVEEDORES ? [...ps, k] : [k]);
+  const quitarProveedor = (k: string) => setProveedores((ps) => ps.filter((x) => x !== k));
+  const cambiarVista = setVista;
+
+  const indiceTotal = useMemo(() => indexarProveedores(contratos), [contratos]);
+  const nombreProveedor = (k: string) => indiceTotal.get(k)?.nombre ?? k;
 
   const abierto = useMemo(
     () => (d && abiertoId ? contratos.find((c) => c.id === abiertoId) ?? null : null),
@@ -124,7 +144,7 @@ function Explorador() {
         {/* la instrucción de desarrollo no le sirve a un visitante */}
         {EDITOR_DISPONIBLE ? (
           <p className="mt-4 text-xs" style={{ color: "var(--muted)" }}>
-            Generá los archivos con <code>npm run data:all</code>.
+            Genera los archivos con <code>npm run data:all</code>.
           </p>
         ) : (
           <button onClick={() => location.reload()}
@@ -144,11 +164,15 @@ function Explorador() {
     <main className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6">
       <header>
         <div className="mb-3 flex items-center justify-between gap-3">
-          <Link href="/" className="text-xs font-medium transition hover:opacity-70"
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-medium transition hover:opacity-70"
                 style={{ color: "var(--muted)" }}>
-            ← WiSii
+            ← <MarcaWisii tamano={18} /> WiSii
           </Link>
-          <TemaToggle />
+          <div className="flex items-center gap-3">
+            <Link href="/hallazgos" className="text-xs font-medium hover:opacity-70"
+                  style={{ color: "var(--ink-soft)" }}>Hallazgos</Link>
+            <TemaToggle />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -164,28 +188,50 @@ function Explorador() {
           </div>
         </div>
 
-        <nav className="mt-4 flex gap-1 rounded-lg border p-1 text-sm"
+        <nav className="mt-4 flex items-center gap-1 rounded-lg border p-1 text-sm"
              style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
-          {VISTAS.map(([v, l]) => (
-            <button key={v} onClick={() => setVista(v)}
-                    className="rounded-md px-3 py-1.5 font-medium transition"
-                    style={vista === v
-                      ? { background: "var(--accent)", color: "var(--accent-ink)" }
-                      : { color: "var(--muted)" }}>
-              {l}
-            </button>
-          ))}
+          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
+            {VISTAS.map(([v, l]) => (
+              <button key={v} onClick={() => cambiarVista(v)}
+                      className="shrink-0 rounded-md px-3 py-1.5 font-medium transition"
+                      style={vista === v
+                        ? { background: "var(--accent)", color: "var(--accent-ink)" }
+                        : { color: "var(--muted)" }}>
+                {l}
+              </button>
+            ))}
+          </div>
+          {/* el mapa de calor es secundario: un ícono con la silueta de las islas */}
+          <button onClick={() => cambiarVista("mapa")} title="Mapa de calor" aria-label="Mapa de calor"
+                  aria-pressed={vista === "mapa"}
+                  className="shrink-0 rounded-md p-1.5 transition"
+                  style={vista === "mapa"
+                    ? { background: "var(--accent)", color: "var(--accent-ink)" }
+                    : { color: "var(--muted)" }}>
+            <IconoIslas />
+          </button>
         </nav>
       </header>
 
-      {/* La barra de filtros es la misma en las dos vistas; solo el listado
-          lleva buscador de texto. */}
+      {/* La barra de filtros es la misma en contratos, timeline y mapa; solo el
+          listado lleva buscador. */}
       {!SIN_FILTROS.includes(vista) && (
         <div className="mt-4">
           <BarraFiltros filtros={filtros} setFiltros={setFiltros}
                         opciones={filtrado.opciones} periodos={filtrado.periodos}
                         conteoPeriodos={filtrado.conteoPeriodos}
-                        conBusqueda={vista === "contratos"} />
+                        busqueda={vista === "contratos" ? "texto" : enTimeline ? "elegir" : null}
+                        colores={enTimeline ? SERIES : undefined}
+                        nota={enTimeline ? <>
+                          Hasta {MAX_PROVEEDORES} proveedores sobre la misma escala de tiempo. Las
+                          sugerencias cuentan los contratos con los filtros activos. Se agrupa por
+                          documento: un mismo proveedor escrito de varias formas se junta; un documento
+                          mal digitado en el SECOP aparece aparte.
+                        </> : undefined}
+                        sugeribles={global.paraProveedores}
+                        nombreProveedor={nombreProveedor}
+                        proveedores={proveedores} onElegirProveedor={elegirProveedor}
+                        onQuitarProveedor={quitarProveedor} />
         </div>
       )}
 
@@ -193,7 +239,7 @@ function Explorador() {
         {vista === "contratos" && (
           <Listado filtrados={filtrado.filtrados} total={filtrado.total}
                    universo={contratos.length} filtros={filtros} setFiltros={setFiltros}
-                   urlCompartir={`/contratos${escribirUrl("contratos", filtros, null)}`}
+                   urlCompartir={`/contratos${escribirUrl("contratos", filtros, null, proveedores)}`}
                    onAbrirContrato={(c) => setAbiertoId(c.id)} />
         )}
         {vista === "mapa" && (
@@ -201,10 +247,12 @@ function Explorador() {
                      meta={meta} onAbrirContrato={(c) => setAbiertoId(c.id)} />
         )}
         {vista === "timeline" && (
-          <Timeline contratos={contratos} filtrados={filtrado.filtrados}
+          <Timeline contratos={contratos} filtrados={global.filtrados}
+                    sugeribles={global.paraProveedores}
                     claves={proveedores} onCambiarClaves={setProveedores}
                     onAbrirContrato={(c) => setAbiertoId(c.id)} />
         )}
+        {vista === "blog" && <ListaBlog />}
         {vista === "editor" && EDITOR_DISPONIBLE && <EditorBarrios meta={meta} />}
         {vista === "asignador" && EDITOR_DISPONIBLE && <AsignadorBarrios />}
       </section>
@@ -226,9 +274,9 @@ function Explorador() {
         Contorno de las islas © OpenStreetMap. El mapa ubica el{" "}
         <strong>domicilio del representante legal del contratista</strong>, no el lugar de
         ejecución: el SECOP registra todos los contratos en la misma dirección, y SECOP I
-        ni siquiera publica ese campo. Se descartaron {meta.duplicados_descartados} registros
+        ni siquiera publica ese campo. Se descartaron {numero(meta.duplicados_descartados)} registros
         que aparecían en ambos sistemas. El campo <code>valor_pagado</code> se omite porque
-        solo {meta.con_pago_reportado} de {numero(meta.contratos)} contratos lo reportan.
+        solo {numero(meta.con_pago_reportado)} de {numero(meta.contratos)} contratos lo reportan.
       </footer>
 
       {noEncontrado && (
@@ -246,9 +294,7 @@ function Explorador() {
                          url={`/contratos${escribirUrl(vista, filtros, abierto.id, proveedores)}`}
                          onCerrar={() => setAbiertoId(null)}
                          onVerTimeline={vista === "timeline" ? undefined : () => {
-                           const k = claveProveedor(abierto);
-                           setProveedores((ps) => ps.includes(k) ? ps
-                             : ps.length < MAX_PROVEEDORES ? [...ps, k] : [k]);
+                           elegirProveedor(claveProveedor(abierto));
                            setVista("timeline");
                            setAbiertoId(null);
                          }} />

@@ -141,3 +141,6 @@ export function tramosSolapados(barras: Barra[]): Tramo[] {
   }
   return out;
 }
+
+/** Color de cada proveedor del timeline, por orden de elección. */
+export const SERIES = ["var(--serie-1)", "var(--serie-2)", "var(--serie-3)"];

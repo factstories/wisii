@@ -5,6 +5,7 @@ import type { Contrato } from "./types";
 import { normalizar } from "./data";
 import { periodosConDatos, type Periodo } from "./gobiernos";
 import type { Filtros, Orden } from "./urlEstado";
+import { claveProveedor } from "./linea";
 
 export type Pred = (c: Contrato) => boolean;
 
@@ -45,6 +46,11 @@ export interface Filtrado {
   opciones: Record<"entidad" | "estado" | "tipo" | "modalidad", [string, number][]>;
   periodos: Periodo[];
   conteoPeriodos: Map<string, number>;
+  /**
+   * Contratos que pasan todos los filtros salvo la búsqueda y el proveedor:
+   * de aquí salen las sugerencias del buscador, con su número de contratos.
+   */
+  paraProveedores: Contrato[];
 }
 
 /**
@@ -69,6 +75,8 @@ export function useFiltrado(
     }
     const min = f.minValor ? Number(f.minValor) : 0;
     if (min) p.valor = (c) => c.valor >= min;
+    // la búsqueda solo se ve en el listado: en las demás
+    // vistas aplicarlos acotaría el resultado sin que se note por qué
     if (!omitirBusqueda) {
       // varias palabras = AND, así "profesional loma" acota de verdad
       const terminos = normalizar(f.q).split(/\s+/).filter(Boolean);
@@ -77,6 +85,11 @@ export function useFiltrado(
     return p;
   }, [f.q, f.entidad, f.estado, f.tipo, f.modalidad, f.desde, f.hasta,
       f.minValor, omitirBusqueda]);
+
+  const paraProveedores = useMemo(() => {
+    const fs = Object.entries(preds).filter(([k]) => k !== "q").map(([, p]) => p);
+    return fs.length ? contratos.filter((c) => fs.every((p) => p(c))) : contratos;
+  }, [contratos, preds]);
 
   const filtrados = useMemo(() => {
     const fs = Object.values(preds);
@@ -111,5 +124,5 @@ export function useFiltrado(
 
   const total = useMemo(() => filtrados.reduce((s, c) => s + c.valor, 0), [filtrados]);
 
-  return { filtrados, total, opciones, periodos, conteoPeriodos };
+  return { filtrados, total, opciones, periodos, conteoPeriodos, paraProveedores };
 }

@@ -189,7 +189,7 @@ export default function AsignadorBarrios() {
               </div>
               {sugerencias.length === 0 ? (
                 <p className="mt-3 text-xs" style={{ color: "var(--muted)" }}>
-                  Ningún nombre se parece lo suficiente. Buscá abajo o pasá al siguiente.
+                  Ningún nombre se parece lo suficiente. Busca abajo o pasa al siguiente.
                 </p>
               ) : (
                 <ul className="mt-2 space-y-1">
@@ -246,7 +246,7 @@ export default function AsignadorBarrios() {
           </div>
           {sesion.length === 0 && (
             <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
-              Todavía no asignaste nada. Lo que elijas se acumula acá y se escribe al guardar.
+              Todavía no asignaste nada. Lo que elijas se acumula aquí y se escribe al guardar.
             </p>
           )}
         </div>

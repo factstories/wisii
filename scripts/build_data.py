@@ -186,7 +186,7 @@ def leer_secop1(path):
 def main():
     src2 = os.path.join(DATA, "contratos_raw.csv")
     if not os.path.exists(src2):
-        sys.exit("error: falta data/contratos_raw.csv — corré antes scripts/fetch_data.py")
+        sys.exit("error: falta data/contratos_raw.csv — ejecuta antes scripts/fetch_data.py")
     cargar_entidades(DATA)
     rows = leer_secop2(src2)
     n2 = len(rows)

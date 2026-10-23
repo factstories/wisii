@@ -42,7 +42,7 @@ export async function GET() {
 export async function POST(req: Request) {
   if (soloLectura()) {
     return NextResponse.json(
-      { error: "En Vercel el filesystem es de solo lectura. Usá «Descargar» y reemplazá data/gazetteer.json en el repo." },
+      { error: "En Vercel el filesystem es de solo lectura. Usa «Descargar» y reemplaza data/gazetteer.json en el repo." },
       { status: 403 },
     );
   }

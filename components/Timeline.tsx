@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Contrato } from "@/lib/types";
 import { cop, copCorto, fecha, numero } from "@/lib/format";
 import {
-  buscarProveedores, dia, indexarProveedores, repartirEnCarriles, tramosSolapados,
+  dia, indexarProveedores, repartirEnCarriles, tramosSolapados,
   type Barra, type Proveedor,
+  SERIES,
 } from "@/lib/linea";
 import { ELECCIONES, type Eleccion } from "@/lib/gobiernos";
 import { MAX_PROVEEDORES } from "@/lib/urlEstado";
@@ -23,7 +24,6 @@ const PX_POR_CARACTER = 6;
 const ZOOMS = [1, 2, 4, 8];
 
 /** Proveedor 1 coral, 2 azul, 3 verde: tokens definidos en globals.css. */
-const SERIES = ["var(--serie-1)", "var(--serie-2)", "var(--serie-3)"];
 
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const isoDeDia = (d: number) => new Date(d * 86_400_000).toISOString().slice(0, 10);
@@ -42,19 +42,19 @@ interface Grupo {
   top: number;
 }
 
-export default function Timeline({ contratos, filtrados, claves, onCambiarClaves, onAbrirContrato }: {
+export default function Timeline({ contratos, filtrados, sugeribles, claves, onCambiarClaves, onAbrirContrato }: {
   /** todos los contratos: definen la identidad y el total de cada proveedor */
   contratos: Contrato[];
   /** los que pasan los filtros de la barra: son los que se dibujan */
   filtrados: Contrato[];
+  /** contratos de todo el departamento que pasan los filtros: alimentan el buscador */
+  sugeribles: Contrato[];
   /** proveedores seleccionados, en orden; viven en la URL para poder compartir */
   claves: string[];
   onCambiarClaves: (claves: string[]) => void;
   onAbrirContrato: (c: Contrato) => void;
 }) {
   const indice = useMemo(() => indexarProveedores(contratos), [contratos]);
-  const [q, setQ] = useState("");
-  const [abierto, setAbierto] = useState(false);
   const [zoom, setZoom] = useState(0);
   /** elección cuya tarjeta está abierta; se abre al tocar, porque en el móvil no hay hover */
   const [eleccionSel, setEleccionSel] = useState<Eleccion | null>(null);
@@ -63,21 +63,18 @@ export default function Timeline({ contratos, filtrados, claves, onCambiarClaves
     () => claves.map((k) => indice.get(k)).filter((p): p is Proveedor => Boolean(p)),
     [claves, indice]);
   const noEncontrados = claves.filter((k) => !indice.has(k));
-  const lleno = provs.length >= MAX_PROVEEDORES;
 
-  const resultados = useMemo(
-    () => buscarProveedores(indice, q, 12).filter((p) => !claves.includes(p.clave)),
-    [indice, q, claves]);
+  // los destacados también respetan los filtros: con un gobierno elegido, son
+  // los que más contrataron en ese período
   const destacados = useMemo(
-    () => [...indice.values()].sort((a, b) => b.contratos.length - a.contratos.length).slice(0, 8),
-    [indice]);
+    () => [...indexarProveedores(sugeribles).values()]
+      .sort((a, b) => b.contratos.length - a.contratos.length).slice(0, 8),
+    [sugeribles]);
 
   function agregar(p: Proveedor) {
     if (!claves.includes(p.clave) && claves.length < MAX_PROVEEDORES) {
       onCambiarClaves([...claves, p.clave]);
     }
-    setQ("");
-    setAbierto(false);
   }
   const quitar = (k: string) => onCambiarClaves(claves.filter((x) => x !== k));
 
@@ -191,71 +188,6 @@ export default function Timeline({ contratos, filtrados, claves, onCambiarClaves
 
   return (
     <div className="flex flex-col gap-4">
-      {/* selección */}
-      <div className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
-        {provs.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {provs.map((p, i) => (
-              <span key={p.clave}
-                    className="inline-flex max-w-full items-center gap-2 rounded-full border py-1 pl-2.5 pr-1.5 text-xs"
-                    style={{ borderColor: SERIES[i] }}>
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: SERIES[i] }} />
-                <span className="truncate font-medium">{p.nombre}</span>
-                <button onClick={() => quitar(p.clave)} aria-label={`Quitar ${p.nombre}`}
-                        className="rounded-full px-1.5 leading-none" style={{ color: "var(--muted)" }}>×</button>
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="relative">
-          <input
-            value={q} disabled={lleno}
-            onChange={(e) => { setQ(e.target.value); setAbierto(true); }}
-            onFocus={() => setAbierto(true)}
-            onBlur={() => setTimeout(() => setAbierto(false), 150)}
-            placeholder={lleno
-              ? `Máximo ${MAX_PROVEEDORES} proveedores: quitá uno para agregar otro`
-              : provs.length
-                ? `Agregar otro proveedor para comparar (${provs.length} de ${MAX_PROVEEDORES})…`
-                : "Buscar proveedor por nombre o documento…"}
-            className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none disabled:opacity-60"
-            style={{ borderColor: "var(--line)", background: "var(--raised)", color: "var(--ink)" }}
-          />
-          {abierto && q.trim() && !lleno && (
-            <ul className="absolute left-0 right-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border shadow-lg"
-                style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
-              {resultados.length === 0 ? (
-                <li className="px-3 py-2.5 text-xs" style={{ color: "var(--muted)" }}>
-                  Ningún proveedor coincide con «{q}».
-                </li>
-              ) : resultados.map((p) => (
-                <li key={p.clave}>
-                  <button onMouseDown={(e) => e.preventDefault()} onClick={() => agregar(p)}
-                          className="flex w-full items-baseline justify-between gap-3 border-b px-3 py-2 text-left text-xs transition hover:bg-[var(--raised)]"
-                          style={{ borderColor: "var(--line-soft)" }}>
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{p.nombre}</span>
-                      <span className="num text-[10px]" style={{ color: "var(--muted)" }}>
-                        {p.documento || "sin documento"}
-                      </span>
-                    </span>
-                    <span className="num shrink-0 text-right" style={{ color: "var(--muted)" }}>
-                      {numero(p.contratos.length)} contratos · {copCorto(p.valor)}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <p className="mt-2 text-[11px]" style={{ color: "var(--muted)" }}>
-          Hasta {MAX_PROVEEDORES} proveedores sobre la misma escala de tiempo. Se agrupa por
-          documento: un mismo proveedor escrito de varias formas se junta; un documento mal
-          digitado en el SECOP aparece aparte.
-        </p>
-      </div>
-
       {noEncontrados.length > 0 && (
         <Nota>
           {noEncontrados.length === 1 ? "Un proveedor del enlace no está" : "Algunos proveedores del enlace no están"}{" "}
@@ -267,12 +199,12 @@ export default function Timeline({ contratos, filtrados, claves, onCambiarClaves
         <div className="rounded-xl border p-5 text-sm"
              style={{ borderColor: "var(--line)", background: "var(--surface)", color: "var(--ink-soft)" }}>
           Ningún contrato de {provs.length === 1 ? "este proveedor" : "estos proveedores"} cumple
-          los filtros aplicados. Probá quitando alguno.
+          los filtros aplicados. Prueba quitando alguno.
         </div>
       ) : !modelo || !geo ? (
         <div className="rounded-xl border p-5" style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
           <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
-            Buscá un proveedor para ver sus contratos en el tiempo, y sumá hasta dos más para comparar.
+            Busca un proveedor para ver sus contratos en el tiempo, y suma hasta dos más para comparar.
           </p>
           <p className="mt-4 text-[10px] uppercase tracking-wider" style={{ color: "var(--muted)" }}>
             Proveedores con más contratos
@@ -346,7 +278,7 @@ export default function Timeline({ contratos, filtrados, claves, onCambiarClaves
             {ocultas > 0 && (
               <span className="mr-2" style={{ color: "var(--sand)" }}>
                 {numero(ocultas)} {ocultas === 1 ? "valor no cabe" : "valores no caben"} a este
-                zoom{zoom < ZOOMS.length - 1 ? ": acercá con +" : ""}
+                zoom{zoom < ZOOMS.length - 1 ? ": acerca con +" : ""}
               </span>
             )}
             <span style={{ color: "var(--muted)" }}>Zoom</span>
@@ -541,10 +473,10 @@ export default function Timeline({ contratos, filtrados, claves, onCambiarClaves
             publicadas; si el SECOP no trae inicio, se usa la firma. Los contratos de un mismo
             proveedor que comparten aunque sea un día quedan en carriles distintos, uno sobre
             otro. Los rombos sobre el eje marcan las <strong>elecciones de gobernador</strong>:
-            tocalos para ver la fecha y quién ganó. La escala llega siempre hasta hoy.{" "}
+            tócalos para ver la fecha y quién ganó. La escala llega siempre hasta hoy.{" "}
             {modelo.grupos.some((g) => g.barras.some((b) => b.finDudoso)) && (
               <>Los rombos huecos en los carriles son contratos sin fecha de fin válida.</>
-            )} Tocá una barra para ver el detalle.
+            )} Toca una barra para ver el detalle.
           </Nota>
         </>
       )}

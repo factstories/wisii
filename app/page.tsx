@@ -4,7 +4,9 @@ import { leerDatos } from "@/lib/estaticos";
 import { cop, copCorto, fecha, numero } from "@/lib/format";
 import { ANIO, CONTACTO, FUENTES, MARCA, MARCA_SIGNIFICADO, NORMAS, RESPONSABLE } from "@/lib/legal";
 import TemaToggle from "@/components/TemaToggle";
+import { HALLAZGOS } from "@/lib/hallazgos";
 import { secopUrl } from "@/lib/format";
+import { LogoWisii, MarcaFactstories, MarcaWisii } from "@/components/marca/Logos";
 
 export const metadata = {
   title: "WiSii · Contratación pública del Archipiélago",
@@ -31,18 +33,17 @@ export default async function Portada() {
   const urlDelMes = `/contratos?desde=${rec.desde}&hasta=${rec.hasta}&orden=valor-desc`;
 
   return (
-    <main>
+    // anim-suave: movimiento sobrio (entrada y marca viva); el llamativo es de hallazgos
+    <main className="anim-suave">
       {/* ---------- barra ---------- */}
       <header className="sticky top-0 z-40 border-b backdrop-blur"
               style={{ borderColor: "var(--line)",
                        background: "color-mix(in srgb, var(--sea) 88%, transparent)" }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-            <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full"
-                  style={{ background: "var(--cta)" }} />
-            {MARCA}
-          </span>
+          <Link href="/" aria-label={MARCA}><LogoWisii tamano={30} /></Link>
           <div className="flex items-center gap-2">
+            <Link href="/hallazgos" className="px-2 text-sm font-medium hover:opacity-70"
+                  style={{ color: "var(--ink-soft)" }}>Hallazgos</Link>
             <TemaToggle />
             <Link href="/contratos"
                   className="rounded-lg px-3 py-1.5 text-sm font-semibold transition hover:opacity-90"
@@ -55,22 +56,24 @@ export default async function Portada() {
 
       {/* ---------- portada ---------- */}
       <section className="mx-auto max-w-6xl px-4 pb-14 pt-14 sm:px-6 sm:pt-20">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em]"
-           style={{ color: "var(--cta)" }}>
+        <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
+        <div>
+        <p className="sube text-xs font-semibold uppercase tracking-[0.18em]"
+           style={{ color: "var(--cta)", "--i": 0 } as React.CSSProperties}>
           Veeduría de contratación pública
         </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+        <h1 style={{ "--i": 1 } as React.CSSProperties} className="sube mt-4 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
           <span className="block text-5xl sm:text-7xl">{MARCA}</span>
           <span className="mt-3 block">
             Cada peso que contrata el Archipiélago,{" "}
             <span style={{ color: "var(--accent)" }}>a la vista de todos</span>.
           </span>
         </h1>
-        <p className="mt-4 text-sm italic" style={{ color: "var(--muted)" }}>
+        <p className="sube mt-4 text-sm italic" style={{ color: "var(--muted)", "--i": 2 } as React.CSSProperties}>
           {MARCA_SIGNIFICADO}
         </p>
-        <p className="mt-6 max-w-2xl text-base leading-relaxed sm:text-lg"
-           style={{ color: "var(--ink-soft)" }}>
+        <p className="sube mt-6 max-w-2xl text-base leading-relaxed sm:text-lg"
+           style={{ color: "var(--ink-soft)", "--i": 3 } as React.CSSProperties}>
           La contratación de las regiones se publica, pero queda enterrada en portales
           pensados para trámites, no para leerse. Este observatorio reúne{" "}
           <strong>{numero(meta.contratos)} contratos</strong> de las {meta.entidades}{" "}
@@ -80,21 +83,27 @@ export default async function Portada() {
           dónde vive quien contrata con el Estado en las islas.
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center gap-3">
+        <div style={{ "--i": 4 } as React.CSSProperties} className="sube mt-9">
           <Link href="/contratos"
-                className="rounded-xl px-5 py-3 text-sm font-semibold shadow-sm transition hover:opacity-90"
+                className="cta-grande inline-flex items-center gap-3 rounded-2xl px-7 py-4 text-base font-semibold shadow-lg transition hover:-translate-y-0.5 sm:text-lg"
                 style={{ background: "var(--cta)", color: "var(--cta-ink)" }}>
-            Explorar los {numero(meta.contratos)} contratos →
+            Ver los {numero(meta.contratos)} contratos
+            <span className="flecha" aria-hidden>→</span>
           </Link>
-          <Link href="/contratos?v=mapa"
-                className="rounded-xl border px-5 py-3 text-sm font-semibold transition hover:opacity-80"
-                style={{ borderColor: "var(--line)", color: "var(--ink)" }}>
-            Ver el mapa de calor
-          </Link>
+          <p className="mt-3 text-xs" style={{ color: "var(--muted)" }}>
+            Busca por proveedor, filtra por entidad y gobierno, compara en la línea de tiempo.
+          </p>
+        </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-2 gap-6 border-t pt-8 sm:grid-cols-4"
-             style={{ borderColor: "var(--line)" }}>
+        {/* la marca grande: el ojo parpadea y mira; el mar se mueve despacio */}
+        <div style={{ "--i": 2 } as React.CSSProperties} className="sube hidden justify-center lg:flex">
+          <MarcaWisii tamano={300} animada />
+        </div>
+        </div>
+
+        <div className="sube mt-12 grid grid-cols-2 gap-6 border-t pt-8 sm:grid-cols-4"
+             style={{ borderColor: "var(--line)", "--i": 5 } as React.CSSProperties}>
           <Dato valor={numero(meta.contratos)} etiqueta="Contratos"
                 nota={`${fecha(meta.desde)} – ${fecha(meta.hasta)}`} />
           <Dato valor={copCorto(meta.valor_total)} etiqueta="Valor contratado"
@@ -193,6 +202,27 @@ export default async function Portada() {
           </div>
         </div>
       </section>
+
+      {/* ---------- último hallazgo ---------- */}
+      {HALLAZGOS[0] && (
+        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Hallazgos</h2>
+            <Link href="/hallazgos" className="text-sm font-semibold underline underline-offset-4"
+                  style={{ color: "var(--accent)" }}>Ver todos →</Link>
+          </div>
+          <Link href={`/hallazgos/${HALLAZGOS[0].slug}`}
+                className="tarjeta mt-5 block rounded-xl border p-6"
+                style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
+            <div className="num text-xs" style={{ color: "var(--muted)" }}>{fecha(HALLAZGOS[0].fecha)}</div>
+            <h3 className="mt-2 text-xl font-semibold leading-snug">{HALLAZGOS[0].titulo}</h3>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+              {HALLAZGOS[0].resumen}
+            </p>
+            <span className="mt-3 inline-block text-sm font-semibold" style={{ color: "var(--cta)" }}>Leer la nota →</span>
+          </Link>
+        </section>
+      )}
 
       {/* ---------- qué hace y qué no ---------- */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
@@ -303,6 +333,10 @@ export default async function Portada() {
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-6 text-[11px]"
                style={{ borderColor: "var(--line)", color: "var(--muted)" }}>
+            <p className="flex items-center gap-2">
+              <MarcaFactstories tamano={18} />
+              <span>Un proyecto de <strong style={{ color: "var(--ink-soft)" }}>Factstories</strong></span>
+            </p>
             <p>
               © {ANIO} {RESPONSABLE}. Código, diseño y textos: todos los derechos reservados.
               Los datos públicos reutilizados no son objeto de derechos de autor y conservan

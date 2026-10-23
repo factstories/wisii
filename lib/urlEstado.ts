@@ -8,7 +8,7 @@
  */
 
 export type Orden = "firma-desc" | "firma-asc" | "valor-desc" | "valor-asc";
-export type Vista = "mapa" | "contratos" | "timeline" | "editor" | "asignador";
+export type Vista = "contratos" | "timeline" | "blog" | "mapa" | "editor" | "asignador";
 
 export interface Filtros {
   q: string;
@@ -35,7 +35,7 @@ const CLAVES: Record<keyof Filtros, string> = {
   minValor: "min", orden: "orden",
 };
 
-const VISTAS: Vista[] = ["contratos", "mapa", "timeline", "editor", "asignador"];
+const VISTAS: Vista[] = ["contratos", "timeline", "blog", "mapa", "editor", "asignador"];
 const ORDENES: Orden[] = ["firma-desc", "firma-asc", "valor-desc", "valor-asc"];
 
 export function leerFiltros(sp: URLSearchParams): Filtros {
@@ -60,7 +60,7 @@ export const leerContrato = (sp: URLSearchParams) => sp.get("c") ?? null;
 export const MAX_PROVEEDORES = 3;
 
 /**
- * Proveedores del timeline, en orden (el orden fija el color). Cada uno va en
+ * Proveedores elegidos (listado y timeline), en orden (el orden fija el color). Cada uno va en
  * su propio parámetro `p` —documento, o "n:NOMBRE" si no tiene— en vez de
  * separados por coma, porque un nombre puede contener comas.
  */
@@ -73,13 +73,17 @@ export function escribirUrl(
 ): string {
   const sp = new URLSearchParams();
   if (vista !== "contratos") sp.set("v", vista);
+  // el blog no usa filtros: su enlace queda limpio
+  if (vista === "blog") return "?v=blog";
   for (const [campo, clave] of Object.entries(CLAVES) as [keyof Filtros, string][]) {
-    // el timeline no tiene buscador de texto: no se arrastra la búsqueda del listado
-    if (vista === "timeline" && campo === "q") continue;
+    // la búsqueda es del listado; las demás vistas no la aplican, así que
+    // tampoco se arrastra a su URL
+    if (vista !== "contratos" && campo === "q") continue;
     const v = filtros[campo];
     if (v && v !== FILTROS_VACIOS[campo]) sp.set(clave, v);
   }
-  if (vista === "timeline") for (const p of proveedores) sp.append("p", p);
+  // los proveedores elegidos son un "carrito" compartido por listado y timeline
+  if (vista === "contratos" || vista === "timeline") for (const p of proveedores) sp.append("p", p);
   if (contrato) sp.set("c", contrato);
   const qs = sp.toString();
   return qs ? `?${qs}` : "";

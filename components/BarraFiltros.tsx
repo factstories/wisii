@@ -4,6 +4,9 @@ import { numero } from "@/lib/format";
 import { etiquetaPeriodo, periodoPorId, titular, type Periodo } from "@/lib/gobiernos";
 import { FILTROS_VACIOS, hayFiltros, type Filtros } from "@/lib/urlEstado";
 import type { Filtrado } from "@/lib/filtrado";
+import type { Contrato } from "@/lib/types";
+import { MAX_PROVEEDORES } from "@/lib/urlEstado";
+import BuscadorProveedores from "./BuscadorProveedores";
 
 function Selector({ etiqueta, valor, onChange, opciones, resaltado }: {
   etiqueta: string; valor: string; onChange: (v: string) => void;
@@ -43,15 +46,31 @@ function Fecha({ etiqueta, valor, onChange }: {
 }
 
 export default function BarraFiltros({
-  filtros, setFiltros, opciones, periodos, conteoPeriodos, conBusqueda,
+  filtros, setFiltros, opciones, periodos, conteoPeriodos, busqueda, sugeribles, nombreProveedor,
+  proveedores, onElegirProveedor, onQuitarProveedor, colores, nota,
 }: {
   filtros: Filtros;
   setFiltros: (f: Filtros) => void;
   opciones: Filtrado["opciones"];
   periodos: Periodo[];
   conteoPeriodos: Map<string, number>;
-  /** el mapa de calor no lleva buscador de texto */
-  conBusqueda: boolean;
+  /**
+   * Buscador arriba de los filtros: en el listado también busca texto; en el
+   * timeline solo elige proveedores. El mapa no lleva.
+   */
+  busqueda: "texto" | "elegir" | null;
+  /** color de cada proveedor elegido (el timeline los distingue por serie) */
+  colores?: string[];
+  /** aclaración que va debajo de los filtros */
+  nota?: React.ReactNode;
+  /** contratos que pasan los filtros salvo búsqueda y proveedor: alimentan las sugerencias */
+  sugeribles: Contrato[];
+  /** nombre a mostrar en los chips de proveedores elegidos */
+  nombreProveedor: (clave: string) => string;
+  /** carrito de proveedores, compartido con el timeline */
+  proveedores: string[];
+  onElegirProveedor: (clave: string) => void;
+  onQuitarProveedor: (clave: string) => void;
 }) {
   const set = <K extends keyof Filtros>(k: K, v: Filtros[K]) =>
     setFiltros({ ...filtros, [k]: v });
@@ -72,18 +91,43 @@ export default function BarraFiltros({
   return (
     <div className="rounded-xl border p-3"
          style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
-      {conBusqueda && (
-        <div className="relative mb-3">
-          <input
-            value={filtros.q} onChange={(e) => set("q", e.target.value)}
-            placeholder="Buscar en objeto, proveedor, documento, barrio o domicilio…"
-            className="w-full rounded-lg border px-3 py-2.5 pr-20 text-sm outline-none"
-            style={{ borderColor: "var(--line)", background: "var(--raised)", color: "var(--ink)" }}
-          />
-          {filtros.q && (
-            <button onClick={() => set("q", "")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs"
-                    style={{ color: "var(--muted)" }}>limpiar</button>
+      {busqueda && (
+        <div className="mb-3 space-y-2">
+          {busqueda === "texto" ? (
+            <BuscadorProveedores
+              sugeribles={sugeribles}
+              texto={filtros.q}
+              onTexto={(t) => set("q", t)}
+              onElegir={(p) => { onElegirProveedor(p.clave); if (filtros.q) set("q", ""); }}
+              placeholder="Buscar proveedor, o en objeto, documento, barrio o domicilio…"
+            />
+          ) : (
+            <BuscadorProveedores
+              sugeribles={sugeribles}
+              onElegir={(p) => onElegirProveedor(p.clave)}
+              excluir={proveedores}
+              deshabilitado={proveedores.length >= MAX_PROVEEDORES}
+              placeholder={proveedores.length >= MAX_PROVEEDORES
+                ? `Máximo ${MAX_PROVEEDORES} proveedores: quita uno para agregar otro`
+                : proveedores.length
+                  ? `Agregar otro proveedor para comparar (${proveedores.length} de ${MAX_PROVEEDORES})…`
+                  : "Buscar proveedor por nombre o documento…"}
+            />
+          )}
+          {proveedores.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {proveedores.map((k, i) => (
+                <span key={k} className="inline-flex max-w-full items-center gap-2 rounded-full border py-1 pl-2.5 pr-1.5 text-xs"
+                      style={{ borderColor: colores?.[i] ?? "var(--cta)" }}>
+                  {colores?.[i] && (
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: colores[i] }} />
+                  )}
+                  <span className="truncate font-medium">{nombreProveedor(k)}</span>
+                  <button onClick={() => onQuitarProveedor(k)} aria-label="Quitar proveedor"
+                          className="rounded-full px-1.5 leading-none" style={{ color: "var(--muted)" }}>×</button>
+                </span>
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -135,6 +179,9 @@ export default function BarraFiltros({
           Quitar filtros
         </button>
       </div>
+      {nota && (
+        <p className="mt-3 text-[11px]" style={{ color: "var(--muted)" }}>{nota}</p>
+      )}
     </div>
   );
 }

@@ -357,7 +357,7 @@ export default function MapaCalor({
               <h2 className="text-sm font-semibold">Dónde vive quien contrata</h2>
               <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--ink-soft)" }}>
                 El calor marca la concentración de <strong>contratistas por barrio de
-                residencia</strong>, no el lugar donde se ejecuta el contrato. Tocá un
+                residencia</strong>, no el lugar donde se ejecuta el contrato. Toca un
                 barrio para ver su detalle.
               </p>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
@@ -432,7 +432,7 @@ export default function MapaCalor({
               ))}
               {detalle.length > 40 && (
                 <div className="p-3 text-center text-[11px]" style={{ color: "var(--muted)" }}>
-                  y {numero(detalle.length - 40)} más — usá la pestaña Contratos para filtrar
+                  y {numero(detalle.length - 40)} más — usa la pestaña Contratos para filtrar
                 </div>
               )}
             </div>

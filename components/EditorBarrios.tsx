@@ -243,7 +243,7 @@ export default function EditorBarrios({ meta }: { meta: Meta }) {
         ? { tipo: "ok", texto: `Guardado y recalculado: ${d.barrios} barrios, ${d.alias} alias`
             + (d.sinUbicar ? `, ${d.sinUbicar} sin ubicar` : "")
             + ". El mapa de calor ya refleja los cambios." }
-        : { tipo: "error", texto: `Guardado, pero el recálculo falló (${d.error}). Corré «npm run data:build» a mano.` });
+        : { tipo: "error", texto: `Guardado, pero el recálculo falló (${d.error}). Ejecuta «npm run data:build» a mano.` });
     } else {
       setMsg({ tipo: "error", texto: d.error ?? "Error al guardar" });
     }
@@ -311,15 +311,15 @@ export default function EditorBarrios({ meta }: { meta: Meta }) {
           <div className="absolute bottom-8 left-3 right-3 rounded-lg border px-3 py-2 text-xs backdrop-blur"
                style={{ borderColor: "var(--accent)", background: "color-mix(in srgb, var(--surface) 92%, transparent)" }}>
             {creando ? (
-              <>Hacé clic en el mapa para ubicar <strong>{creando.nombre}</strong>{" "}
+              <>Haz clic en el mapa para ubicar <strong>{creando.nombre}</strong>{" "}
                 <button onClick={() => setCreando(null)} className="ml-2 underline" style={{ color: "var(--muted)" }}>cancelar</button></>
             ) : (
               <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 {gaz.barrios[sel!]?.lat == null ? (
-                  <>Sin ubicación conocida: hacé clic en el mapa para ubicar{" "}
+                  <>Sin ubicación conocida: haz clic en el mapa para ubicar{" "}
                     <strong>{sel}</strong>.</>
                 ) : (
-                  <>Editando <strong>{sel}</strong> — clic en el mapa o arrastrá el punto.{" "}
+                  <>Editando <strong>{sel}</strong> — clic en el mapa o arrastra el punto.{" "}
                     <span className="num" style={{ color: "var(--muted)" }}>
                       {gaz.barrios[sel!]!.lat!.toFixed(5)}, {gaz.barrios[sel!]!.lon!.toFixed(5)}
                     </span>
@@ -359,8 +359,8 @@ export default function EditorBarrios({ meta }: { meta: Meta }) {
           </div>
           {!editable && (
             <p className="mt-2 text-[11px]" style={{ color: "var(--coral)" }}>
-              Desplegado en Vercel: el guardado directo está deshabilitado. Usá «Descargar»
-              y reemplazá <code>data/gazetteer.json</code> en el repo.
+              Desplegado en Vercel: el guardado directo está deshabilitado. Usa «Descargar»
+              y reemplaza <code>data/gazetteer.json</code> en el repo.
             </p>
           )}
           {msg && (
@@ -426,7 +426,7 @@ export default function EditorBarrios({ meta }: { meta: Meta }) {
           <>
             <Nota>
               Textos de <code>domicilio_representante_legal</code> que ningún alias reconoce.
-              Asignalos a un barrio existente o creá uno nuevo ubicándolo en el mapa.
+              Asígnalos a un barrio existente o crea uno nuevo ubicándolo en el mapa.
               Cada asignación sube la cobertura del mapa de calor.
             </Nota>
             <div className="flex-1 overflow-y-auto rounded-xl border"

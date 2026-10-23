@@ -208,7 +208,7 @@ vuelve al tope.
 Los contadores de cada selector se calculan sobre los contratos que pasan **todos los demás
 filtros**, no sobre el total. Al elegir el gobierno 2020-2023, «Contratación directa» pasa
 de 31.531 a 17.586 y «San Luis» de 1.962 a 1.130: el número que ves es el que vas a obtener
-si aplicás ese filtro. El valor ya seleccionado se conserva en la lista aunque quede en
+si aplicas ese filtro. El valor ya seleccionado se conserva en la lista aunque quede en
 cero, para que el desplegable no aparezca vacío.
 
 ## Paleta y tema
@@ -262,9 +262,9 @@ La pestaña **Editor de barrios** existe para eso:
   Los chips marcan el origen: `OSM`, `aprox` o `editado`.
 - El conmutador **San Andrés / Providencia** cambia de isla; la lista y los marcadores
   siguen a la isla activa, y los barrios nuevos se crean en ella.
-- Seleccioná un barrio y hacé clic en el mapa (o arrastrá el punto) para reubicarlo.
+- Selecciona un barrio y haz clic en el mapa (o arrastra el punto) para reubicarlo.
 - La pestaña **Sin reconocer** lista los textos de domicilio que ningún alias captura, con
-  su frecuencia. Asignalos a un barrio existente o creá uno nuevo ubicándolo en el mapa.
+  su frecuencia. Asígnalos a un barrio existente o crea uno nuevo ubicándolo en el mapa.
   Cada asignación sube la cobertura del mapa de calor.
 - **Quitar ubicación** deja el barrio en el gazetteer con `lat`/`lon` en `null`. El alias
   sigue reconociendo el domicilio, pero el barrio desaparece del mapa y sus contratos se
@@ -280,7 +280,7 @@ así que la pestaña no se muestra: `next.config.ts` resuelve
 del despliegue ni siquiera referencia el componente, y un enlace a `?v=editor` cae al
 listado. Ofrecer un editor que no puede guardar solo confunde a quien visita el sitio.
 
-Después de guardar, recalculá los datos:
+Después de guardar, recalcula los datos:
 
 ```bash
 npm run data:build
@@ -314,7 +314,7 @@ esos está el buscador manual de la derecha.
 
 ## Desplegar en Vercel
 
-Importá el repo en Vercel: detecta Next.js y no necesita configuración. El sitio es estático
+Importa el repo en Vercel: detecta Next.js y no necesita configuración. El sitio es estático
 salvo `/api/gazetteer`, que solo lee en producción.
 
 El refresco automático lo hace GitHub Actions, no Vercel: `.github/workflows/actualizar-datos.yml`
