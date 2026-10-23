@@ -43,13 +43,13 @@ const AsignadorBarrios = dynamic(() => import("@/components/AsignadorBarrios"), 
 const EDITOR_DISPONIBLE = process.env.NEXT_PUBLIC_EDITOR_BARRIOS !== "0";
 const HERRAMIENTAS: Vista[] = ["editor", "asignador"];
 /** vistas que no usan la barra de filtros */
-const SIN_FILTROS: Vista[] = [...HERRAMIENTAS, "blog"];
+const SIN_FILTROS: Vista[] = [...HERRAMIENTAS, "hallazgos"];
 
 /** Pestañas principales. El mapa de calor es secundario: va como ícono aparte. */
 const VISTAS: [Vista, string][] = [
   ["contratos", "Contratos"],
   ["timeline", "Timeline"],
-  ["blog", "Blog posts"],
+  ["hallazgos", "Hallazgos"],
   ...(EDITOR_DISPONIBLE
     ? ([["editor", "Editor de barrios"], ["asignador", "Asignador de barrios"]] as [Vista, string][])
     : []),
@@ -168,11 +168,7 @@ function Explorador() {
                 style={{ color: "var(--muted)" }}>
             ← <MarcaWisii tamano={18} /> WiSii
           </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/hallazgos" className="text-xs font-medium hover:opacity-70"
-                  style={{ color: "var(--ink-soft)" }}>Hallazgos</Link>
-            <TemaToggle />
-          </div>
+          <TemaToggle />
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -252,7 +248,7 @@ function Explorador() {
                     claves={proveedores} onCambiarClaves={setProveedores}
                     onAbrirContrato={(c) => setAbiertoId(c.id)} />
         )}
-        {vista === "blog" && <ListaBlog />}
+        {vista === "hallazgos" && <ListaBlog />}
         {vista === "editor" && EDITOR_DISPONIBLE && <EditorBarrios meta={meta} />}
         {vista === "asignador" && EDITOR_DISPONIBLE && <AsignadorBarrios />}
       </section>

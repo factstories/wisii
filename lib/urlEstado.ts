@@ -8,7 +8,7 @@
  */
 
 export type Orden = "firma-desc" | "firma-asc" | "valor-desc" | "valor-asc";
-export type Vista = "contratos" | "timeline" | "blog" | "mapa" | "editor" | "asignador";
+export type Vista = "contratos" | "timeline" | "hallazgos" | "mapa" | "editor" | "asignador";
 
 export interface Filtros {
   q: string;
@@ -35,7 +35,7 @@ const CLAVES: Record<keyof Filtros, string> = {
   minValor: "min", orden: "orden",
 };
 
-const VISTAS: Vista[] = ["contratos", "timeline", "blog", "mapa", "editor", "asignador"];
+const VISTAS: Vista[] = ["contratos", "timeline", "hallazgos", "mapa", "editor", "asignador"];
 const ORDENES: Orden[] = ["firma-desc", "firma-asc", "valor-desc", "valor-asc"];
 
 export function leerFiltros(sp: URLSearchParams): Filtros {
@@ -50,7 +50,8 @@ export function leerFiltros(sp: URLSearchParams): Filtros {
 
 /** El listado es la vista por defecto: /contratos abre la tabla. */
 export function leerVista(sp: URLSearchParams): Vista {
-  const v = sp.get("v") as Vista | null;
+  // "blog" era el nombre anterior de la pestaña: los enlaces viejos siguen sirviendo
+  const v = (sp.get("v") === "blog" ? "hallazgos" : sp.get("v")) as Vista | null;
   return v && VISTAS.includes(v) ? v : "contratos";
 }
 
@@ -73,8 +74,8 @@ export function escribirUrl(
 ): string {
   const sp = new URLSearchParams();
   if (vista !== "contratos") sp.set("v", vista);
-  // el blog no usa filtros: su enlace queda limpio
-  if (vista === "blog") return "?v=blog";
+  // los hallazgos no usan filtros: su enlace queda limpio
+  if (vista === "hallazgos") return "?v=hallazgos";
   for (const [campo, clave] of Object.entries(CLAVES) as [keyof Filtros, string][]) {
     // la búsqueda es del listado; las demás vistas no la aplican, así que
     // tampoco se arrastra a su URL

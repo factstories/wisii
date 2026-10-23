@@ -22,7 +22,7 @@ export default function Articulo({ titulo, fechaPub, resumen, etiquetas, cifras,
           <nav className="flex items-center gap-3 text-xs font-medium" style={{ color: "var(--muted)" }}>
             <Link href="/" className="inline-flex items-center gap-1.5 hover:opacity-70">← <MarcaWisii tamano={16} /> {MARCA}</Link>
             <span aria-hidden>/</span>
-            <Link href="/contratos?v=blog" className="hover:opacity-70">Blog posts</Link>
+            <Link href="/hallazgos" className="hover:opacity-70">Hallazgos</Link>
           </nav>
           <TemaToggle />
         </div>

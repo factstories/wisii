@@ -185,7 +185,9 @@ export default async function Nota2026Oct() {
           {topValorConRetiros === 0
             ? "Ninguno de ellos tuvo contratos retirados del SECOP."
             : `${topValorConRetiros} de ellos tuvo contratos retirados del SECOP.`}{" "}
-          Aparecer en estas listas solo indica volumen de contratación, no ninguna irregularidad.
+          Las listas incluyen personas naturales: casi todos los contratos de la Gobernación son
+          de prestación de servicios con personas, y el SECOP publica su nombre como información
+          pública. Aparecer en ellas solo indica volumen de contratación, no una irregularidad.
         </P>
         <Ranking titulo="Por valor contratado" por="valor" filas={per.top_por_valor}
                  nota="Gobernación, contratos firmados desde enero de 2024" />

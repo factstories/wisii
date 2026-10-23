@@ -1,10 +1,10 @@
 /**
  * Hallazgos: notas sobre eventos de la contratación pública del Archipiélago
  * que vale la pena contar. Cada nota vive en app/hallazgos/<slug>/page.tsx y
- * se registra aquí para aparecer en el blog, el índice y la portada.
+ * se registra aquí para aparecer en la pestaña Hallazgos, el índice y la portada.
  *
  * `texto` es el cuerpo de la nota en texto plano: alimenta la búsqueda por
- * contenido del blog. Al agregar una nota, copiar ahí sus párrafos principales.
+ * contenido de los hallazgos. Al agregar una nota, copiar ahí sus párrafos principales.
  * El orden no importa: se muestran de la más reciente a la más antigua.
  */
 export interface Hallazgo {
