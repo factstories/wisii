@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ---------------------------------------------------------------------------
+   Paleta del proyecto
+     0d1821  azul noche      344966  azul acero     b4cded  azul claro
+     f0f4ef  hueso           bfcc94  salvia         ff7154  coral (acción)
+     111a1b  negro base      f1faff  blanco base
+   Los tokens se definen completos en :root (modo claro) y solo se redefinen
+   los que cambian en oscuro, para que el toggle funcione en ambos sentidos.
+--------------------------------------------------------------------------- */
+:root {
+  --sea:        #f1faff;
+  --surface:    #ffffff;
+  --raised:     #f0f4ef;
+  --line:       #cfdce8;
+  --line-soft:  #e4edf4;
+  --ink:        #111a1b;
+  --ink-soft:   #344966;
+  --muted:      #6c8296;
+  --accent:     #344966;
+  --accent-ink: #f1faff;
+  --cta:        #ff7154;
+  --cta-ink:    #ffffff;
+  --coral:      #d94a2f;   /* coral oscurecido: legible sobre fondo claro */
+  --sand:       #6f7f45;   /* salvia oscurecida, misma razón */
+  --island:     #e6eadf;
+  --island-line:#bfcc94;
+  --sombra:     0 1px 3px rgba(13, 24, 33, .1), 0 1px 2px rgba(13, 24, 33, .06);
+  /* series del timeline: proveedor 1, 2 y 3 */
+  --serie-1:    #ff7154;
+  --serie-2:    #344966;
+  --serie-3:    #6f7f45;
+}
+
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --sea:        #0d1821;
+    --surface:    #12202c;
+    --raised:     #1a2c3a;
+    --line:       #294057;
+    --line-soft:  #1f3346;
+    --ink:        #f1faff;
+    --ink-soft:   #b4cded;
+    --muted:      #7d99b3;
+    --accent:     #b4cded;
+    --accent-ink: #0d1821;
+    --cta:        #ff7154;
+    --cta-ink:    #111a1b;
+    --coral:      #ff7154;
+    --sand:       #bfcc94;
+    --island:     #24394a;
+    --island-line:#3d5a72;
+    --sombra:     0 1px 3px rgba(0, 0, 0, .4), 0 1px 2px rgba(0, 0, 0, .3);
+    --serie-1:    #ff7154;
+    --serie-2:    #b4cded;
+    --serie-3:    #bfcc94;
+  }
+}
+
+:root[data-theme="dark"] {
+  --sea:        #0d1821;
+  --surface:    #12202c;
+  --raised:     #1a2c3a;
+  --line:       #294057;
+  --line-soft:  #1f3346;
+  --ink:        #f1faff;
+  --ink-soft:   #b4cded;
+  --muted:      #7d99b3;
+  --accent:     #b4cded;
+  --accent-ink: #0d1821;
+  --cta:        #ff7154;
+  --cta-ink:    #111a1b;
+  --coral:      #ff7154;
+  --sand:       #bfcc94;
+  --island:     #24394a;
+  --island-line:#3d5a72;
+  --sombra:     0 1px 3px rgba(0, 0, 0, .4), 0 1px 2px rgba(0, 0, 0, .3);
+  --serie-1:    #ff7154;
+  --serie-2:    #b4cded;
+  --serie-3:    #bfcc94;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--sea);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* tabulares para que las cifras de dinero no bailen */
+.num { font-variant-numeric: tabular-nums; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+::selection { background: color-mix(in srgb, var(--cta) 30%, transparent); }
+
+:focus-visible {
+  outline: 2px solid var(--cta);
+  outline-offset: 2px;
+}
+
+.maplibregl-ctrl-attrib { font-size: 10px; }
+.maplibregl-popup-content { background: var(--surface); color: var(--ink); border-radius: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
