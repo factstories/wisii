@@ -274,10 +274,10 @@ La pestaña **Editor de barrios** existe para eso:
   (~2 s). El mapa de calor lee `barrios.json`, no el gazetteer, así que sin ese paso una
   edición no se vería reflejada.
 
-**El editor solo existe corriendo en local.** En Vercel el filesystem es de solo lectura,
-así que la pestaña no se muestra: `next.config.ts` resuelve
-`NEXT_PUBLIC_EDITOR_BARRIOS` a partir de `process.env.VERCEL` en tiempo de build, el bundle
-del despliegue ni siquiera referencia el componente, y un enlace a `?v=editor` cae al
+**El editor solo existe con `npm run dev`.** El sitio publicado es una exportación
+estática sin servidor: `next.config.ts` activa `NEXT_PUBLIC_EDITOR_BARRIOS` solo en
+desarrollo, la ruta `app/api/gazetteer/route.dev.ts` únicamente se reconoce ahí, el bundle
+publicado ni siquiera referencia el componente, y un enlace a `?v=editor` cae al
 listado. Ofrecer un editor que no puede guardar solo confunde a quien visita el sitio.
 
 Después de guardar, recalcula los datos:
@@ -312,15 +312,29 @@ esos está el buscador manual de la derecha.
 `data/gazetteer.json` también se edita a mano sin problema: es un JSON plano con `barrios`
 (nombre → lat/lon/origen/isla) y `alias` (texto normalizado → barrio).
 
-## Desplegar en Vercel
+## Desplegar en Cloudflare Pages
 
-Importa el repo en Vercel: detecta Next.js y no necesita configuración. El sitio es estático
-salvo `/api/gazetteer`, que solo lee en producción.
+`npm run build` genera una exportación estática en `out/` (con `NEXT_DIST_DIR`, en ese
+directorio). Los encabezados de caché de `/data` están en `public/_headers`.
 
-El refresco automático lo hace GitHub Actions, no Vercel: `.github/workflows/actualizar-datos.yml`
-corre los lunes, regenera `public/data/` y commitea si algo cambió, lo que dispara el
-redespliegue. Requiere un secret `SODA_APP_TOKEN` en el repo
-(Settings → Secrets and variables → Actions).
+El despliegue lo hace GitHub Actions con [`desplegar.yml`](.github/workflows/desplegar.yml):
+construye el sitio y lo sube con Wrangler en cada push a `main`, a mano desde Actions, o
+cuando el workflow de datos commitea cambios. Crea el proyecto de Pages la primera vez.
+
+Configuración del repo (Settings → Secrets and variables → Actions):
+
+| Tipo | Nombre | Para qué |
+|---|---|---|
+| Secret | `CLOUDFLARE_API_TOKEN` | Token con permiso *Cloudflare Pages: Edit* |
+| Secret | `CLOUDFLARE_ACCOUNT_ID` | ID de la cuenta de Cloudflare |
+| Secret | `SODA_APP_TOKEN` | Token de datos.gov.co para las descargas |
+| Variable | `SITIO_URL` | Dirección pública, p. ej. `https://wisii.pages.dev` |
+| Variable | `GOATCOUNTER_URL` | Opcional: `https://NOMBRE.goatcounter.com/count` |
+| Variable | `CLOUDFLARE_PROYECTO` | Opcional: nombre del proyecto (por defecto `wisii`) |
+
+El refresco automático lo hace [`actualizar-datos.yml`](.github/workflows/actualizar-datos.yml):
+corre los lunes, regenera `public/data/`, commitea si algo cambió y llama al despliegue
+(un push hecho con `GITHUB_TOKEN` no dispara otros workflows por sí solo).
 
 Antes de commitear, [`scripts/verificar_datos.py`](scripts/verificar_datos.py) compara el
 resultado con la versión publicada y **frena la publicación** si una fuente quedó en cero,

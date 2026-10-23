@@ -1,6 +1,6 @@
 name: Actualizar datos del SECOP
 
-# Semanal + manual. Al commitear public/data, Vercel redespliega solo.
+# Semanal + manual. Si los datos cambian, los commitea y llama al despliegue.
 on:
   schedule:
     - cron: "0 9 * * 1"      # lunes 09:00 UTC (04:00 en Colombia)
@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      cambios: ${{ steps.commit.outputs.cambios }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +44,7 @@ jobs:
         run: python3 scripts/verificar_datos.py
 
       - name: Commitear si hubo cambios
+        id: commit
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -51,4 +54,12 @@ jobs:
           else
             git commit -m "datos: actualización automática del SECOP"
             git push
+            echo "cambios=true" >> "$GITHUB_OUTPUT"
           fi
+
+  # El push del bot no dispara desplegar.yml por sí solo: se llama desde aquí.
+  desplegar:
+    needs: actualizar
+    if: needs.actualizar.outputs.cambios == 'true'
+    uses: ./.github/workflows/desplegar.yml
+    secrets: inherit

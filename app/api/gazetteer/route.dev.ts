@@ -13,8 +13,8 @@ const BBOX = {
   Providencia:   { lat: [13.26, 13.44], lon: [-81.46, -81.28] },
 } as const;
 
-/** true cuando corre en Vercel, donde el filesystem es de solo lectura. */
-const soloLectura = () => Boolean(process.env.VERCEL);
+/** Esta ruta solo existe en desarrollo (ver next.config.ts); por si acaso. */
+const soloLectura = () => process.env.NODE_ENV === "production";
 
 const ejecutar = promisify(execFile);
 
@@ -42,7 +42,7 @@ export async function GET() {
 export async function POST(req: Request) {
   if (soloLectura()) {
     return NextResponse.json(
-      { error: "En Vercel el filesystem es de solo lectura. Usa «Descargar» y reemplaza data/gazetteer.json en el repo." },
+      { error: "El sitio publicado no puede escribir en disco. Usa «Descargar» y reemplaza data/gazetteer.json en el repo." },
       { status: 403 },
     );
   }

@@ -359,7 +359,7 @@ export default function EditorBarrios({ meta }: { meta: Meta }) {
           </div>
           {!editable && (
             <p className="mt-2 text-[11px]" style={{ color: "var(--coral)" }}>
-              Desplegado en Vercel: el guardado directo está deshabilitado. Usa «Descargar»
+              En el sitio publicado el guardado directo está deshabilitado. Usa «Descargar»
               y reemplaza <code>data/gazetteer.json</code> en el repo.
             </p>
           )}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
+import { ContarVisitas, ScriptAnalitica } from "@/components/Analitica";
 import "./globals.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -10,7 +10,11 @@ const DESCRIPCION =
   "Departamento Archipiélago de San Andrés, Providencia y Santa Catalina, " +
   "construido sobre los datos abiertos del SECOP publicados en datos.gov.co.";
 
+/** Dirección pública del sitio: la necesitan la imagen al compartir y los enlaces canónicos. */
+const SITIO = process.env.NEXT_PUBLIC_SITIO_URL || "https://wisii.pages.dev";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITIO),
   title: { default: TITULO, template: "%s · WiSii" },
   description: DESCRIPCION,
   applicationName: "WiSii",
@@ -28,12 +32,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: TEMA_INICIAL }} />
+        <ScriptAnalitica />
       </head>
       <body>
         {children}
-        {/* Analítica de Vercel: sin cookies y sin datos personales. Solo
-            reporta desde el despliegue; en local no envía nada. */}
-        <Analytics />
+        <ContarVisitas />
       </body>
     </html>
   );

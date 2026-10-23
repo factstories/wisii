@@ -4,6 +4,7 @@ import { MarcaOg } from "@/lib/marcaOg";
 export const alt = "WiSii · Contratación pública del Archipiélago";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const dynamic = "force-static";
 
 export default function ImagenOg() {
   return new ImageResponse(

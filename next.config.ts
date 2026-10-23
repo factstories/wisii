@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -22,30 +23,28 @@ function huellaDatos(): string {
   return h.digest("hex").slice(0, 12);
 }
 
-const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  // `next build` y `next dev` comparten .next y se pisan: un build mientras el
-  // servidor de desarrollo corre lo deja sirviendo 500. Con esto, una
-  // verificación puede escribir en otro directorio (ver `npm run check`).
-  distDir: process.env.NEXT_DIST_DIR || ".next",
-  env: {
-    // El editor de barrios escribe data/gazetteer.json en disco, algo imposible
-    // en Vercel (filesystem de solo lectura). Se resuelve en tiempo de build:
-    // en un despliegue la pestaña no se muestra ni se descarga su código.
-    NEXT_PUBLIC_EDITOR_BARRIOS: process.env.VERCEL ? "0" : "1",
-    NEXT_PUBLIC_DATOS_VERSION: huellaDatos(),
-  },
-  headers: async () => [
-    {
-      // Nada de stale-while-revalidate: con él, Safari servía la copia vieja
-      // de contratos.json al código nuevo mientras revalidaba en segundo plano,
-      // y el decodificador fallaba al no encontrar un campo nuevo. Con
-      // must-revalidate el navegador consulta siempre; si nada cambió, el
-      // servidor responde 304 por ETag y no se vuelve a bajar el archivo.
-      source: "/data/:file*",
-      headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
+/**
+ * En desarrollo corre el servidor de Next completo, con el editor de barrios y
+ * su API, que escriben en disco. Todo build es una exportación estática (`out/`)
+ * que se publica en Cloudflare Pages: sin servidor, así que el editor y su ruta
+ * quedan fuera. La ruta vive en `route.dev.ts` y solo se reconoce en desarrollo.
+ *
+ * Los encabezados de caché de /data están en public/_headers: Cloudflare Pages
+ * los lee de ahí, porque `headers()` no existe en una exportación.
+ */
+export default function config(fase: string): NextConfig {
+  const desarrollo = fase === PHASE_DEVELOPMENT_SERVER;
+  return {
+    reactStrictMode: true,
+    output: desarrollo ? undefined : "export",
+    // `next build` y `next dev` comparten .next y se pisan: un build mientras el
+    // servidor de desarrollo corre lo deja sirviendo 500. Con esto, una
+    // verificación puede escribir en otro directorio (ver `npm run check`).
+    distDir: process.env.NEXT_DIST_DIR || ".next",
+    pageExtensions: desarrollo ? ["tsx", "ts", "dev.ts"] : ["tsx", "ts"],
+    env: {
+      NEXT_PUBLIC_EDITOR_BARRIOS: desarrollo ? "1" : "0",
+      NEXT_PUBLIC_DATOS_VERSION: huellaDatos(),
     },
-  ],
-};
-
-export default nextConfig;
+  };
+}

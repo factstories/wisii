@@ -32,7 +32,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next-check/types/**/*.ts",
-    ".next-vercel/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
     ".next-local/types/**/*.ts"

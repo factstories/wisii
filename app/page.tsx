@@ -4,6 +4,7 @@ import { leerDatos } from "@/lib/estaticos";
 import { cop, copCorto, fecha, numero } from "@/lib/format";
 import { ANIO, CONTACTO, FUENTES, MARCA, MARCA_SIGNIFICADO, NORMAS, RESPONSABLE } from "@/lib/legal";
 import TemaToggle from "@/components/TemaToggle";
+import { GOATCOUNTER } from "@/lib/analitica";
 import { HALLAZGOS } from "@/lib/hallazgos";
 import { secopUrl } from "@/lib/format";
 import { LogoWisii, MarcaFactstories, MarcaWisii } from "@/components/marca/Logos";
@@ -319,9 +320,11 @@ export default async function Portada() {
                 u omisiones de la fuente; donde los detectamos, quedan advertidos en la
                 interfaz. Esta publicación es informativa y no constituye prueba, certificación
                 ni asesoría legal: para efectos oficiales consulte directamente el SECOP.
-                Las visitas se miden con Vercel Web Analytics, <strong>sin cookies</strong>:
-                no recoge datos personales, no construye perfiles ni rastrea entre sitios;
-                solo cuenta páginas vistas de forma agregada.
+                {GOATCOUNTER && (
+                  <> Las visitas se miden con GoatCounter, <strong>sin cookies</strong>:
+                    no recoge datos personales, no construye perfiles ni rastrea entre sitios;
+                    solo cuenta qué páginas se ven, sin registrar búsquedas ni filtros.</>
+                )}
                 {CONTACTO && (
                   <> Para reportar un error escriba a{" "}
                     <a href={`mailto:${CONTACTO}`} className="underline underline-offset-2">{CONTACTO}</a>.

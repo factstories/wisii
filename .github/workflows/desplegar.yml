@@ -1,0 +1,70 @@
+name: Desplegar en Cloudflare Pages
+
+# Construye la exportación estática y la sube a Cloudflare Pages.
+# - En cada push a main (commits hechos a mano).
+# - Llamado por actualizar-datos.yml cuando el bot commitea datos nuevos: un
+#   push hecho con GITHUB_TOKEN no dispara otros workflows, así que no basta con
+#   escuchar el push.
+# - A mano, desde la pestaña Actions.
+#
+# Necesita los secrets CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID, y admite
+# las variables del repo SITIO_URL, GOATCOUNTER_URL y CLOUDFLARE_PROYECTO.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: desplegar
+  cancel-in-progress: false
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PROYECTO: ${{ vars.CLOUDFLARE_PROYECTO || 'wisii' }}
+    steps:
+      # siempre la punta de main: llamado desde el workflow de datos, el SHA del
+      # evento es el de antes del commit del bot
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Exportar el sitio estático
+        env:
+          NEXT_PUBLIC_SITIO_URL: ${{ vars.SITIO_URL }}
+          NEXT_PUBLIC_GOATCOUNTER: ${{ vars.GOATCOUNTER_URL }}
+        run: npm run build
+
+      # Cloudflare Pages rechaza archivos de más de 25 MiB; contratos.json crece
+      # cada semana, así que mejor enterarse aquí que con un despliegue roto.
+      - name: Verificar tamaños
+        run: |
+          grandes=$(find out -type f -size +24M)
+          if [ -n "$grandes" ]; then
+            echo "::error::Archivos demasiado grandes para Cloudflare Pages:"; ls -la $grandes; exit 1
+          fi
+
+      # crea el proyecto la primera vez; después falla porque ya existe, y está bien
+      - name: Crear el proyecto si no existe
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 pages project create "$PROYECTO" --production-branch=main || true
+
+      - name: Subir a Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy out --project-name=${{ env.PROYECTO }} --branch=main --commit-dirty=true

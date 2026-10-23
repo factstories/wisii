@@ -1,0 +1,14 @@
+# Cloudflare Pages lee este archivo y aplica los encabezados a cada ruta.
+#
+# Nada de stale-while-revalidate en los datos: con él, Safari servía la copia
+# vieja de contratos.json al código nuevo mientras revalidaba en segundo plano,
+# y el decodificador fallaba al no encontrar un campo nuevo. Con must-revalidate
+# el navegador consulta siempre; si nada cambió, la respuesta es 304 por ETag.
+/data/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# imágenes generadas en el build, exportadas sin extensión
+/apple-icon
+  Content-Type: image/png
+/opengraph-image
+  Content-Type: image/png
