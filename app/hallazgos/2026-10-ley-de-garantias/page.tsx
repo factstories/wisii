@@ -14,7 +14,7 @@ const nota = HALLAZGOS.find((h) => h.slug === SLUG)!;
 export const metadata = { title: nota.titulo, description: nota.resumen };
 
 interface Evidencia {
-  generado: string; entidad: string;
+  generado: string; entidad: string; directa_min: number;
   restricciones: { eleccion: string; inicio: string; fin: string }[];
   corte: FilaCorte[];
   diarias: SerieDiaria[];
@@ -87,7 +87,7 @@ export default async function NotaGarantias() {
         <P>
           En 2022 la restricción fue del {fecha(r22.inicio)} al {fecha(r22.fin)}; en 2026, del{" "}
           {fecha(r26.inicio)} al {fecha(r26.fin)}. La contratación directa no desaparece en esos meses:
-          se adelanta. Y como en la Gobernación más del 94% de los contratos de cada año son directos
+          se adelanta. Y como en la Gobernación más del {pct(Math.floor(d.directa_min * 100) / 100)} de los contratos de cada año son directos
           —sobre todo prestación de servicios con personas—, adelantarla significa adelantar casi todo.
         </P>
       </Seccion>

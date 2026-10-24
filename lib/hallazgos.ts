@@ -58,8 +58,8 @@ const TODOS: Hallazgo[] = [
       "departamento y compara una semana con la anterior: en una semana normal sale uno o ninguno. " +
       "Casi todos eran contratos de prestación de servicios por contratación directa, de 2.166 " +
       "contratistas. En la Gobernación se retiró cerca de uno de cada cinco contratos firmados en " +
-      "2024, 2025 y 2026, dentro del período constitucional 2024-2027, frente a menos del 0,5% en " +
-      "años anteriores. 887 seguían en ejecución. Consultamos los 3.158 por su número: ninguno " +
+      "2024, 2025 y 2026, dentro del período constitucional 2024-2027, frente a menos del 0,5% entre " +
+      "2020 y 2022 y 3,2% en 2023. 887 seguían en ejecución. Consultamos los 3.158 por su número: ninguno " +
       "existe ya en el conjunto de datos. No son duplicados depurados y SECOP I no se vio afectado. " +
       "No sabemos por qué se retiraron; pueden explicarlo las entidades y Colombia Compra Eficiente, " +
       "a las que se puede preguntar con un derecho de petición. La nota conserva la lista completa.",

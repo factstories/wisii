@@ -58,6 +58,7 @@ export default async function Nota2026Oct() {
   const corPorAnio = new Map<string, number>();
   for (const c of cs) if (c.entidad === "CORALINA") corPorAnio.set(c.firma.slice(0, 4), (corPorAnio.get(c.firma.slice(0, 4)) ?? 0) + 1);
   const gobReciente = d.gobernacion_por_anio.filter((g) => g.anio >= 2024);
+  const g2023 = d.gobernacion_por_anio.find((g) => g.anio === 2023 && g.publicados > 0);
   const v = d.verificacion;
 
   const tServ = per.por_tipo.find((t) => t.tipo === "Prestación de servicios")!;
@@ -106,7 +107,9 @@ export default async function Nota2026Oct() {
           Lo que más llama la atención es cuándo se firmaron. En la Gobernación se retiró cerca de uno
           de cada cinco contratos firmados en 2024, 2025 y 2026 (
           {gobReciente.map((g) => `${pct(g.retirados, g.publicados)} en ${g.anio}`).join(", ")}),
-          mientras que entre 2020 y 2022 se retiró menos del 0,5% de cada año. Es decir, el retiro se
+          mientras que entre 2020 y 2022 se retiró menos del 0,5% de cada año
+          {g2023 && <> y en 2023, último año del gobierno anterior, el {pct(g2023.retirados, g2023.publicados)}</>}.
+          Es decir, el retiro se
           concentra en contratos firmados dentro del{" "}
           <Link href="/contratos?gob=2024-2027&desde=2024-01-01&hasta=2027-12-31&entidad=Gobernaci%C3%B3n+del+Archipi%C3%A9lago"
                 className="underline underline-offset-2">período constitucional 2024–2027</Link>.

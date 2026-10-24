@@ -20,7 +20,7 @@ import sys, os, json
 from datetime import timedelta
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from comun import *
-import calendario
+import calendario, modalidades
 
 SALIDA_NOTA = os.path.join(RAIZ, "public", "data", "hallazgos", "2026-10-ley-de-garantias.json")
 PALABRAS_EXCEPCION = ("iota", "emergencia", "desastre", "reconstruc", "salud", "covid", "pandemia")
@@ -50,8 +50,12 @@ def generar(cs, control="2025"):
                               "documento": c["documento"], "objeto": c["objeto"], "estado": c["estado"],
                               "entidad": c["entidad"], "enlace": c.get("enlace") or "",
                               "palabras_excepcion": any(k in normalizar(c["objeto"]) for k in PALABRAS_EXCEPCION)})
+    # peso de la contratación directa en cada año completo con volumen suficiente
+    mods = modalidades.estudiar(cs)["por_anio"]
+    directa = {a: x["pct_directa_n"] for a, x in mods.items() if x["n"] >= 300}
     return {
-        "generado": r["ultimo"], "entidad": cs[0]["entidad"] if cs else "",
+        "generado": r["ultimo"],
+        "directa_por_anio": directa, "directa_min": min(directa.values()) if directa else None, "entidad": cs[0]["entidad"] if cs else "",
         "restricciones": [{"eleccion": e, "inicio": a, "fin": b} for e, a, b in GARANTIAS_PRESIDENCIALES],
         "corte": [{"anio": int(a), **{k: x[k] for k in ("electoral", "corte", "n", "n_anio", "pct_n", "pct_valor",
                                                         "duracion_media_meses", "anio_completo")}}

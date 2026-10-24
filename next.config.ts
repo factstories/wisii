@@ -41,7 +41,7 @@ export default function config(fase: string): NextConfig {
     // servidor de desarrollo corre lo deja sirviendo 500. Con esto, una
     // verificación puede escribir en otro directorio (ver `npm run check`).
     distDir: process.env.NEXT_DIST_DIR || ".next",
-    pageExtensions: desarrollo ? ["tsx", "ts", "dev.ts"] : ["tsx", "ts"],
+    pageExtensions: desarrollo ? ["tsx", "ts", "dev.ts", "dev.tsx"] : ["tsx", "ts"],
     env: {
       NEXT_PUBLIC_EDITOR_BARRIOS: desarrollo ? "1" : "0",
       NEXT_PUBLIC_DATOS_VERSION: huellaDatos(),
